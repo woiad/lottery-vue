@@ -1,0 +1,2 @@
+webpackJsonp([5],{"2b2l":function(e,t,n){"use strict";Object.defineProperty(t,"__esModule",{value:!0});var r={render:function(){var e=this.$createElement;return(this._self._c||e)("p",[this._v("monitor")])},staticRenderFns:[]};var i=n("VU/8")({name:"monitor"},r,!1,function(e){n("xSfg")},"data-v-5074b0d2",null);t.default=i.exports},xSfg:function(e,t){}});
+//# sourceMappingURL=5.ee1af14f38586829e7d6.js.map
