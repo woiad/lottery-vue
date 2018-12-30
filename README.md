@@ -1,7 +1,8 @@
 # lottery-sys
 
 > 'lottery'
-
+> 公司抽奖系统
+> 包括抽奖后台管理设置，抽奖页面
 ## Build Setup
 
 ``` bash
