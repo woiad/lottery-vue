@@ -57,7 +57,6 @@ export default {
       let myForm = new FormData()
       this.imageData = util.getId(this.inputFileId).files[0]
       myForm.append('image', this.imageData)
-      console.log(myForm.getAll('image'))
       if (!util.nameReg(myForm.getAll('image')[0].type)) {
         alert('上传失败：图片格式要求为jpeg！')
         this.imageData = ''

@@ -98,7 +98,7 @@ export default {
 </script>
 
 <style scoped>
-  .page-wrapper{width: 100%;text-align: center;font-size: 14px;color: #515a6e;}
+  .page-wrapper{width: 100%;padding-bottom: 30px;text-align: center;font-size: 14px;color: #515a6e;}
   .page-wrapper .page{display: inline-block;width: 32px;height: 32px;margin-right: 4px;vertical-align: middle;border-radius: 6px;
     border: 1px solid #dcdee2;text-align: center;line-height: 32px;cursor: pointer;}
   .page-wrapper ul{display: inline-block;}

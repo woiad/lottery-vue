@@ -11,7 +11,6 @@ export const router = new Router({
 
 router.beforeEach((to, from, next) => {
   util.title(to.meta.title)
-  console.log(to)
   let userName = ''
   if (!to.name) {
     routers.push({name: 'error-404'})

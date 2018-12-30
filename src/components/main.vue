@@ -57,8 +57,8 @@ export default {
       Slider: [
         {name: 'lotterySet', title: '抽奖设置'},
         {name: 'prizeSet', title: '奖品设置'},
-        {name: 'personSet', title: '人员设置'}
-        // {name: 'lotteryDevice', title: '开始抽奖'}
+        {name: 'personSet', title: '人员设置'},
+        {name: 'lotteryList', title: '中奖名单'}
       ],
       ind: '',
       userName: '',
@@ -133,7 +133,6 @@ export default {
       this.delShow = true
     },
     confirmlBtn () {
-      localStorage.removeItem('lotteryLevel')
       this.$post('/pyapi/console', {key: 'reloadconfig'})
         .then(response => {
           if (response[1] === 200) {

@@ -5,7 +5,7 @@
     </div>
     <div class="search">
       <input placeholder="输入员工姓名搜素" v-model="searchName" v-on:input="inputName"
-      @keyup.enter="submitName" @blur="personName = []">
+              @keyup.enter="submitName">
       <div class="search-icon"></div>
       <div class="draw" v-if="personName.length !== 0">
         <ul>
@@ -21,7 +21,7 @@
         <th>员工部门</th>
         <th>员工工号</th>
         <th>是否离职</th>
-        <th>图片路径</th>
+        <th>员工图片</th>
         <th>操作</th>
         </thead>
         <tbody>
@@ -30,8 +30,8 @@
           <td>{{item.entrytime}}</td>
           <td>{{item.department}}</td>
           <td>{{item.jobnumber}}</td>
-          <td>{{item.leavejob}}</td>
-          <td>{{item.picdir}}</td>
+          <td>{{item.leavejob === 1 ? '否' : '是'}}</td>
+          <td><img :src= " 'http://113.105.246.230:5110/' + item.picdir" style="display: block;padding: 10px 0;width: 55px;height: 55px;border-radius: 50%;"></td>
           <td>
             <button class="but but-set" @click="personModify(item.id, '修改员工资料')">修改</button>
             <button class="but but-del" @click="personDel(item.id)">删除</button>
@@ -55,8 +55,9 @@
               <input v-model="popData.username" placeholder="请输入员工姓名">
             </div>
             <div class="item">
-              <label>入职时间：(格式为 YYYY-MM-DD)</label>
-              <input v-model="popData.entrytime" placeholder="请输入入职时间">
+              <label>入职时间：</label>
+              <el-date-picker v-model="popData.entrytime" type="date" format="yyyy 年 MM 月 dd 日"
+                              placeholder="选择日期" value-format="yyyy-MM-dd"></el-date-picker>
             </div>
             <div class="item">
               <label>员工部门：</label>
@@ -69,7 +70,7 @@
             </div>
             <div class="item">
               <label>是否离职:（是0 否1）</label>
-              <k-select :select-data="leaveData" selectTip="请选择是否离职" :selected="popData.leavejob"
+              <k-select :select-data="leaveData" selectTip="1" :selected="popData.leavejob"
               @changeSelect="leaveSelect"></k-select>
             </div>
             <div class="item" v-if="popTitle === '添加员工'">
@@ -77,8 +78,7 @@
               <up-pictrue @picPath="setPicPath"></up-pictrue>
             </div>
             <div class="item" v-if="popTitle === '添加员工'">
-              <label>图片路径:（路径格式：/img/20181219.jpeg）</label>
-              <input v-model="popData.picdir" placeholder="请输入图片路径">
+              <input v-model="popData.picdir" placeholder="上传图片后路径自动填写">
             </div>
           </div>
         </pop-window>
@@ -113,7 +113,7 @@ export default {
         entrytime: '',
         department: 0,
         jobnumber: '',
-        leavejob: 0,
+        leavejob: 1,
         picdir: ''
       },
       selectData: ['销售部', '资源部', '总经办', '市场部', '技术部', '财务部', '行政部'],
@@ -141,6 +141,8 @@ export default {
             this.listImg = response
           } else {
             this.personData = response
+            this.pageNum = Math.ceil(response.length / 10)
+            this.showPersonData = this.personData.slice((this.page - 1) * 10, (this.page * 10))
           }
         })
         .catch(res => {
@@ -192,8 +194,8 @@ export default {
     },
     submitData () {
       let reg = /\d{4}-\d{2}-\d{2}/g
-      if (this.popData.username === '' || this.popData.entrytime === '' || this.popData.department === 0 ||
-        this.popData.jobnumber === '' || this.popData.leavejob === 0 || this.popData.picdir === '') {
+      if (!this.popData.username || !this.popData.entrytime || this.popData.department === 0 ||
+        !this.popData.jobnumber || !this.popData.leavejob || !this.popData.picdir) {
         alert('请填写完整资料')
         return true
       }
@@ -281,7 +283,14 @@ export default {
       })
     },
     submitName () {
-      this.init(this.searchName)
+      if (!this.searchName) {
+        this.init('all')
+      } else {
+        this.init(this.searchName)
+      }
+      this.personName = []
+    },
+    leave () {
       this.personName = []
     },
     pageNumChange (num) {
@@ -300,19 +309,20 @@ export default {
 </script>
 
 <style scoped>
+  .person-set-wrapper{position: relative;width: 100%;height: 100%;overflow-y: scroll;padding-right: 14px;}
   .person-set-wrapper .add{display: inline-block;}
   .person-set-wrapper .but{width: 60px;height: 32px;line-height: 32px;outline: none;border: none;
     border-radius: 4px;color: #fff;background: #2d8cf0;cursor: pointer;}
   .person-set-wrapper .primary{width: 80px;}
-  .person-set-wrapper .search{position: relative;display: inline-block;float: right;}
+  .person-set-wrapper .search{position: relative;display: inine-block;float: right;}
   .person-set-wrapper .search input{width: 250px;padding: 4px 7px;height: 32px;line-height: 32px;outline: none;color: #515a6e;
   border-radius: 4px;border: 1px solid #dcdee1;box-sizing: border-box;transition: all .2s linear;}
   .person-set-wrapper .search input:hover{border-color: #57a3f3;}
   .person-set-wrapper .search input:focus{border-color: #57a3f3;box-shadow: 0 0 0 2px rgba(45,140,240,.2);}
   .person-set-wrapper .search .search-icon{position: absolute;top: 7px;right: 10px;width: 16px;height: 16px;background-image: url('../../../static/img/search.png');
   background-repeat: no-repeat;}
-  .person-set-wrapper .draw{width: 100%;position: absolute;top: 32px;background: #fff;z-index: 10;border-radius: 4px;
-    box-shadow: 0 1px 6px rgba(0,0,0,.2);color: #515a6e;}
+  .person-set-wrapper .draw{width: 100%;position: absolute;top: 32px;max-height: 200px;background: #fff;z-index: 10;border-radius: 4px;
+    box-shadow: 0 1px 6px rgba(0,0,0,.2);color: #515a6e;overflow-y: scroll;}
   .person-set-wrapper .draw li{list-style: none;padding: 4px 16px 0;font-size: 14px;line-height: 20px;box-sizing: border-box;cursor: pointer;}
   .person-set-wrapper .draw li:hover{background: #f3f3f3;}
   .person-set-wrapper table{width: 100%;border-spacing: 0;border: 1px solid #dcdee2;margin: 15px 0;}

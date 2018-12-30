@@ -27,11 +27,16 @@
     <div class="lottery" @click="lotteryClick">
       <img :src=prizeButSrc  id="prize_img">
     </div>
+    <div class="box-wrapper">
+      <div class="box" id="box">
+        <li v-for="(item, index) in luckyNum" :key="index">
+          <img :src="item.src">
+        </li>
+      </div>
+    </div>
     <transition name="fade">
       <div class="tip_list" v-show="lotteryTipShow" id="tip_list">
-        <div class="tip_title">
-          {{prizeDesc}}中奖名单
-        </div>
+        <div class="tip_title" :style="{'background-image': 'url(../../../static/img/level_' + level + '.png)'}"></div>
         <div id="leafContainer"></div>
         <div class="btn">
           <button class="back" @click="back">返回抽奖</button>
@@ -39,13 +44,11 @@
       </div>
     </transition>
     <transition name="fade">
-      <div class="box-wrapper" v-show="boxShow">
-        <div class="box" id="box">
-          <li v-for="(item, index) in luckyNum" :key="index">
-            <img :src="item.src">
-          </li>
-        </div>
-      </div>
+      <pop-window title="抽奖确认" v-if="popWindowshow" @cancel="popWindowshow=false" ok-text="确定"
+      @ok="comfirmLottery">
+        <p slot="content" style="padding: 14px 16px;font-size: 14px;color: #515a6e">
+          是否确定抽取{{prizeDesc}}？</p>
+      </pop-window>
     </transition>
   </div>
 </template>
@@ -53,6 +56,7 @@
 <script>
 import util from '../../util/index'
 import createLeaf from '../../util/colorBarindex'
+import popWindow from '../baseCom/pupUpWindows'
 export default {
   name: 'lotteryDevice',
   data () {
@@ -79,7 +83,9 @@ export default {
       objects: [],
       targets: { table: [], sphere: [], helix: [], grid: [] },
       targetsdh: { table: [], sphere: [], helix: [], grid: [] },
-      imgNum: 0
+      imgNum: 0,
+      popWindowshow: false,
+      peopleNull: []
     }
   },
   mounted () {
@@ -223,13 +229,8 @@ export default {
       this.renderer.render(this.scene, this.camera)
     },
     animate () {
-      if (this.boxShow) {
-        this.scene.rotation.x += 0.008
-        this.scene.rotation.y += 0.008
-      } else {
-        this.scene.rotation.x += 0
-        this.scene.rotation.y += 0.008
-      }
+      this.scene.rotation.x += 0.008
+      this.scene.rotation.y += 0.008
       requestAnimationFrame(this.animate)
       TWEEN.update()
       this.controls.update()
@@ -242,46 +243,55 @@ export default {
         alert('请选择奖项！')
         return true
       }
-      let audio = util.getId('music')
       if (this.prizeButSrc === '../static/img/prize_start.png') {
-        let text = this.setLocalStorage()
-        if (text) {
-          alert(text)
-          return true
-        }
-        this.setLuckyImgPath()
-        this.prizeButSrc = '../static/img/prize_stop.png'
-        this.transform(this.targets.sphere, 1000)
-        setTimeout(() => {
-          this.boxShow = true
-        }, 800)
-        audio.src = '../static/music/play.wav'
-        audio.play()
-        util.getId('audioBtn').classList.add('rotating')
+        this.popWindowshow = true
       } else {
-        this.luck()
-        this.prizeButSrc = '../static/img/prize_start.png'
         clearInterval(this.cylic)
+        if (this.peopleNull.length !== 0) {
+          alert(this.peopleNull[0] + this.peopleNull[2])
+        }
+        setTimeout(() => {
+          for (let i = 0; i < this.luckyer.length; i++) {
+            this.luckyNum[i].src = 'http://113.105.246.230:5110/' + this.luckyer[i].picdir
+          }
+        }, 301)
+        let audio = util.getId('music')
         audio.src = '../static/music/lucky.wav'
         audio.play()
-        this.transform(this.targets.grid, 1000)
+        this.prizeButSrc = '../static/img/prize_start.png'
+        // this.transform(this.targets.grid, 800)
         for (let i = 0; i < 50; i++) {
           util.getId('leafContainer').appendChild(createLeaf())
         }
         setTimeout(() => {
-          this.lotteryTipShow = true
           this.luckPeople()
+          this.lotteryTipShow = true
         }, 1000)
       }
     },
+    comfirmLottery () {
+      this.popWindowshow = false
+      let audio = util.getId('music')
+      if (this.prizeButSrc === '../static/img/prize_start.png') {
+        this.setLuckyImgPath()
+        this.prizeButSrc = '../static/img/prize_stop.png'
+        this.transform(this.targets.sphere, 1000)
+        audio.src = '../static/music/play.wav'
+        audio.play()
+        util.getId('audioBtn').classList.add('rotating')
+        setTimeout(() => {
+          this.luck()
+        }, 1500)
+      }
+    },
     setImgNum () {
-      this.$post('/pyapi/console', {key: 'prize_show'})
+      this.$post('/pyapi/console', {key: 'show_level'})
         .then(response => {
           if (response[1] === 403) {
             alert(response[0] + response[1])
           } else {
             for (let i = 0; i < response.length; i++) {
-              if (this.level === response[i].level) {
+              if (this.level === response[i].id) {
                 this.imgNum = response[i].num
                 this.$nextTick(() => {
                   util.getId('box').style.marginLeft = '-' + Math.floor((response[i].num * 120 + 15 * response[i].num) / 2) + 'px'
@@ -316,11 +326,8 @@ export default {
       this.$post('/pyapi/console', {key: 'luck', content: this.level})
         .then(response => {
           if (response[1] === 403) {
-            alert('error:' + response[2])
+            this.peopleNull = response
             return true
-          }
-          for (let i = 0; i < response.length; i++) {
-            this.luckyNum[i].src = 'http://113.105.246.230:5110/' + response[i].picdir
           }
           this.luckyer = response
         })
@@ -329,7 +336,6 @@ export default {
         })
     },
     luckPeople () {
-      let times = 0
       for (let i = 0; i < this.luckyer.length; i++) {
         let _this = this
         setTimeout(function () {
@@ -354,7 +360,7 @@ export default {
           div.appendChild(p)
           div.appendChild(p1)
           div.appendChild(p2)
-          if (_this.luckyer.length > 20) {
+          if (_this.luckyer.length > 12) {
             div.style.width = '100px'
             div.style.height = '100px'
             img.style.width = '45px'
@@ -362,13 +368,7 @@ export default {
             img.style.marginTop = '15px'
           }
           div.addEventListener('animationend', function () {
-            times++
             div.style.opacity = 1
-            if (times === _this.luckyer.length) {
-              setTimeout(function () {
-                alert('本次抽奖完毕，请返回进行下等级抽奖')
-              }, 500)
-            }
           }, false)
           util.getId('tip_list').appendChild(div)
         }, 500)
@@ -385,30 +385,10 @@ export default {
       while (classNameList.length > 0) {
         classNameList[0].remove()
       }
-    },
-    setLocalStorage () {
-      let levelArr = []
-      if (localStorage.getItem('lotteryLevel')) {
-        levelArr = JSON.parse(localStorage.getItem('lotteryLevel'))
-        for (let i = 0; i < levelArr.length; i++) {
-          if (this.level === levelArr[i]) {
-            return '请选择下一奖项抽奖！'
-          }
-        }
-        if (levelArr[levelArr.length - 1] !== this.level - 1) {
-          return '请按照奖项顺序抽奖!'
-        }
-        levelArr.push(this.level)
-        localStorage.setItem('lotteryLevel', JSON.stringify(levelArr))
-      } else {
-        if (this.level !== 1) {
-          return '请按照奖项顺序抽奖!'
-        } else {
-          levelArr.push(this.level)
-          localStorage.setItem('lotteryLevel', JSON.stringify(levelArr))
-        }
-      }
     }
+  },
+  components: {
+    popWindow
   }
 }
 </script>
@@ -419,8 +399,8 @@ export default {
   background-image: url("../../../static/img/bg02.jpg");background-size: 100% 100%;background-position-x: 25px;}
   .lottery-device-wrapper .all-scren{position: absolute;width: 16px;height: 16px;background-image: url('../../../static/img/all-scren.png');
   background-repeat: no-repeat;top: 20px;right: 30px;cursor: pointer;z-index: 20;}
-  .lottery-device-wrapper .title{position: absolute;width: 460px;height: 70px;left: 50%;margin-left: -230px;top: 30px;
-  background-image: url("../../../static/img/title.png");background-size: 100% 100%;}
+  .lottery-device-wrapper .title{position: absolute;width: 100%;height: 100%;top: -30px;background-image: url("../../../static/img/title.png");
+    background-size: 60% 50%;background-position: center top;background-repeat: no-repeat;}
   .lottery-device-wrapper .side-bar{position: relative;width: 25px;height: 100%;background-image: url("../../../static/img/side01.png");background-repeat: no-repeat;background-size: 100% 100%;}
   .lottery-device-wrapper .side-bar .nav{position: absolute;width: 16px;height: 16px;left: 50%;margin-left: -8px;top: 20px;background: url("../../../static/img/nav.png");
   cursor: pointer;z-index: 20;}
@@ -437,7 +417,7 @@ export default {
   color: #e8bb50;font-size: 14px;}
   .slide-enter-active, .slide-leave-active{transition: all .5s linear;transform: translateX(0px);}
   .slide-enter, .slide-leave-to{transform: translate(-200px)}
-  .state{width: 100%;height: 100%;position: absolute;top: 0;}
+  .state{width: 100%;height: 100%;position: absolute;top: 0;z-index: 2;}
   .element{width: 100px;height: 100px;text-align: center;cursor: pointer;}
   .element:hover {box-shadow: 0px 0px 12px rgba(0,255,255,0.75);border: 1px solid rgba(127,255,255,0.75);border-radius: 50%;}
   .element img{max-width: 100%  ;border-radius: 50%;}
@@ -447,8 +427,9 @@ export default {
   .lottery-device-wrapper .lottery:hover img{transform: translateZ(200px);}
   .tip_list{position: absolute;top: 0;left: 0;bottom: 0;right: 0;padding: 126px 21px; display: flex;justify-content: center;align-items: center;perspective: 1000px;
     z-index: 300;flex-wrap: wrap;background: url('../../../static/img/tip_list_bg.jpg') no-repeat;background-size: 100% 100%;
-    box-sizing: border-box; animation: fade .25s linear;perspective: 800px;}
-  .tip_list .tip_title{position: absolute;top: 95px;font-size: 20px;color: #fff;}
+    box-sizing: border-box;perspective: 800px;}
+  .tip_list .tip_title{position: absolute;width: 100%;height: 100%;top: -100px;font-size: 20px;color: #fff;background-image: url('../../../static/img/level_1.png');background-size: 60% 70%;
+  background-position: center top;background-repeat: no-repeat;}
   .tip_list .list{width: 200px;height: 200px;margin: 10px 10px 0 0;background: #fff;background: url('../../../static/img/list_bg.jpg') no-repeat;
     background-size: 100% 100%;text-align: center;transform: translateZ(-10px);transition: all .3s linear;}
   .tip_list .list:hover{box-shadow: 0 1px 6px #fbf177;transform: translateZ(10px);}

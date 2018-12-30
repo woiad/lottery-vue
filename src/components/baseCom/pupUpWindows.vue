@@ -6,8 +6,8 @@
       </div>
       <slot name="content"></slot>
       <div class="footer">
-        <button class="cancel" @click="cancel">取消</button>
-        <button class="confirm" @click="ok">提交</button>
+        <button class="cancel" @click="cancel">{{cancelText}}</button>
+        <button class="confirm" @click="ok">{{okText}}</button>
       </div>
     </div>
   </div>
@@ -24,6 +24,14 @@ export default {
     width: {
       type: String,
       default: '520px'
+    },
+    cancelText: {
+      type: String,
+      default: '取消'
+    },
+    okText: {
+      type: String,
+      default: '提交'
     }
   },
   methods: {
@@ -39,7 +47,7 @@ export default {
 
 <style scoped>
   .pop-wrapper{position: fixed;display: flex;top: 0;left: 0;right: 0;bottom: 0;background: rgba(0, 0, 0, .5);
-  justify-content: center;align-items: center;z-index: 20}
+  justify-content: center;align-items: center;z-index: 200}
   .pop-wrapper .content-wrapper{width: 400px;background: #fff;
   border-radius: 6px;box-shadow: 0 4px 12px rgba(0,0,0,.15)}
   .pop-wrapper .content-wrapper .pop-title{padding: 14px 16px;border-bottom: 1px solid #e8eaec;}

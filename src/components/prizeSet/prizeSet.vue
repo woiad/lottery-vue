@@ -15,7 +15,7 @@
         <tr v-for="(item,index) in prizeData" :key="index">
           <td>{{item.name}}</td>
           <td>{{item.num}}</td>
-          <td>{{item.level}}</td>
+          <td>{{levelChines[item.level - 1]}}</td>
           <td>
             <button class="but but-set" @click="prizeModify(item.id, 'modifier')">修改</button>
             <button class="but but-del" @click="prizeDel(item.id)">删除</button>
@@ -42,7 +42,7 @@
               </div>
               <div class="item">
                 <label>奖品等级：</label>
-                <k-select :select-data="level" @changeSelect="changeSelect" :selected="addPrize.level"></k-select>
+                <k-select :select-data="level" @changeSelect="changeSelect" :selected="level[addPrize.level - 1]"></k-select>
               </div>
             </div>
           </pop-window>
@@ -65,6 +65,7 @@ export default {
   data () {
     return {
       prizeData: [],
+      levelChines: ['特等奖', '一等奖', '二等奖', '三等奖', '随机一', '随机二'],
       title: '添加奖品',
       addPrize: {
         name: '',
@@ -72,7 +73,7 @@ export default {
         num: ''
       },
       popType: '',
-      level: [1, 2, 3, 4, 5, 6],
+      level: ['特等奖', '一等奖', '二等奖', '三等奖', '随机一', '随机二'],
       addShow: false,
       oldMd5: '',
       id: '',
@@ -104,7 +105,7 @@ export default {
       this.addPrize.level = 0
     },
     changeSelect (num) {
-      this.addPrize.level = num
+      this.addPrize.level = this.levelChines.indexOf(num) + 1
     },
     submitPrize () {
       if (this.addPrize.name === '' || this.addPrize.level === '' || this.addPrize.num === '') {

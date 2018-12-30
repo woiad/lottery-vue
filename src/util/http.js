@@ -1,7 +1,7 @@
 import axios from 'axios'
 import qs from 'qs'
 
-axios.defaults.timeout = 6000
+axios.defaults.timeout = 10000
 // axios.defaults.baseURL = 'http://113.105.246.230:5110/'
 
 // http 拦截器

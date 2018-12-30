@@ -19,7 +19,7 @@ export const MainRouter = {
   children: [
     {name: 'lotterySet', path: '/lotterySet', component: () => import('@/components/lotterySet/lotterySet'), meta: {title: '抽奖设置'}},
     {name: 'prizeSet', path: '/prizeSet', component: () => import('@/components/prizeSet/prizeSet'), meta: {title: '奖品设置'}},
-    {name: 'monitor', path: '/monitor', component: () => import('@/components/monitor/monitor'), meta: {title: '状态监控'}},
+    {name: 'lotteryList', path: '/lotteryList', component: () => import('@/components/lotteryList/lotteryList'), meta: {title: '中奖名单'}},
     {name: 'personSet', path: '/personSet', component: () => import('@/components/personSet/personSet'), meta: {title: '人员设置'}}
   ]
 }
